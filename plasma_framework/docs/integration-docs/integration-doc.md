@@ -452,6 +452,25 @@ There are two types of in-flight exit bonds:
 ```
 
 
+## Process Exit Bounty
+Exit bounties cover for the cost of processing the exit. The current value of the bounty similarly, can be retrieved from the `PaymentExitGame` contract.
+
+
+### Standard exit bounty
+A standard exit bounty is required to be provided while starting a standard exit:
+
+```
+    PaymentExitGame.processStandardExitBountySize()
+```
+
+### In-flight exit bounty
+An In-flight exit bounty is required to be provided while piggybacking on an in-flight exit's input or output:
+
+```
+    PaymentExitGame.processInFlightExitBountySize()
+```
+
+
 ## Playing the payment exit game
 
 ### Starting a standard exit
@@ -467,11 +486,18 @@ address = PlasmaFramework.exitGames(1)
 PaymentExitGame = PaymetExitGame.at(address);
 ```
 
-3. To start a standard exit, send the appropriate amount of ETH to cover the bond. To retrieve the actual amount, call the following function:
+3. To start a standard exit, send the appropriate amount of ETH to cover the bond and provide the exit bounty. To retrieve the actual amount for bond, call the following function:
 
 ```
 PaymentExitGame.startStandardExitBondSize()
 ```
+
+To retrieve the amount for bounty, call the following function:
+
+```
+PaymentExitGame.processStandardExitBountySize()
+```
+
 
 ```
 PaymentExitGame.startStandardExit({
@@ -629,7 +655,8 @@ PlasmaFramework.processExits({
   uint256 vaultId, 
   address token, 
   uint160 topExitId, 
-  uint256 maxExitsToProcess
+  uint256 maxExitsToProcess,
+  bytes32 senderData
 })
 ```
 
@@ -656,6 +683,8 @@ If you're trying to process only your own exit, set your exitId here.
 #### maxExitsToProcess (uint256)
 Defines the maximum number of exits you wish to process. Set to `1` to process only your own exit. 
 
+#### senderData (bytes32)
+A keccak256 hash of the sender's address.
 
 ### Example: Processing a standard exit
 
@@ -664,7 +693,8 @@ PlasmaFramework.processExits([
   1, # vaultId 
   0x0000000000000000000000000000000000000000, # token, ETH
   707372774235521271159305957085057710072500938, # topExitId
-  1 # maxExitsToProcess
+  1, # maxExitsToProcess
+  0xf05c779d763388a4faad4af246db1e31d8a0d7c3239e57f83b07c795fdffffe2 # senderData
 ])
 ```
 
@@ -721,7 +751,9 @@ To exit an input or output of an in-flight transaction the user has to piggyback
 
 When in-flight transaction exits, the child chain removes the inputs of the in-flight transaction from the spendable set and they can no longer be spent. Calls to the child chain to spend the inputs or outputs of an in-flight transaction result in `submit:utxo_not_found` error. The effect of an input or output not being available to spend is not visible in contract's state until the exit is processed. After the in-flight exit is processed `PlasmaFramework.isOutputFinalized(piggybackedInputOrOutputPosition)` is set to true.
 
-1. Get the amount of ETH to cover the bond for piggybacking in-flight exit as described [here](#in-flight-exit-bonds).
+1. Get the amount of ETH to cover the bond and the bounty for piggybacking in-flight exit as described [here](#in-flight-exit-bonds) and [here](#In-flight-exit-bounty).
+
+
 
 2. To piggyback on in-flight exit input call:
 ```
@@ -737,7 +769,7 @@ PaymentExitGame.piggybackInFlightExitOnOutput({
   outputIndex
 })
 ```
-Appropriate amount of ETH needs to be provided to cover the bond.
+Appropriate amount of ETH needs to be provided to cover the bond and bounty.
 
 ### Parameters
 
@@ -998,7 +1030,7 @@ PaymentExitGame.deleteNonPiggybackedInFlightExit(7073727742355212711593059570850
 
 ### Processing an in-flight exit
 
-Once the exit period is over, an exit can be processed to release the funds on the root chain. An end user can perform this action, or the operator can do it for everyone.
+Once the exit period is over, an exit can be processed to release the funds on the root chain. An end user can perform this action, or the operator can do it for everyone. The processor is awarded the exit bounty associated with each exit that is processed.
 
 Be aware that in-flight exit is only put on a token's exit queue if a piggyback of that token exists. In other words, if an in-flight exit ends up with no piggybacks of a certain token, eg. ETH, then user will not find the exit on the priority queue for ETH. Please make sure piggyback step is done before process exit. 
 
@@ -1020,7 +1052,8 @@ PlasmaFramework.processExits({
   uint256 vaultId, 
   address token, 
   uint160 topExitId, 
-  uint256 maxExitsToProcess
+  uint256 maxExitsToProcess,
+  bytes32 senderData
 })
 ```
 
@@ -1049,6 +1082,10 @@ Defines the maximum number of exits you wish to process. Set to `1` to process o
 
 ***Note**: `processExits()` will only process exits that have completed their exit period. You can find out which (if any) exits were processed via the `ExitFinalized` or `ProcessedExitsNum` events *
 
+#### senderData (bytes32)
+A keccak256 hash of the sender's address.
+
+
 ### Example: Processing an in-flight exit
 
 ```
@@ -1056,7 +1093,8 @@ PlasmaFramework.processExits([
   1, # vaultId 
   0x0000000000000000000000000000000000000000, # token, ETH
   707372774235521271159305957085057710072500938, # topExitId
-  1 # maxExitsToProcess
+  1, # maxExitsToProcess
+  0xf05c779d763388a4faad4af246db1e31d8a0d7c3239e57f83b07c795fdffffe2 # senderData
 ])
 ```
 
