@@ -1,14 +1,16 @@
-# Process Exit Bounty Design
+# Exit Bond and Process Exit Bounty Design
 
-This document is a description of the current implementation of the Process Exit Bounty.
+This document is a description of the current implementation of exit bonds and process exit bounties which are an integral part of the exit mechanism.
 
 A Process Exit Bounty is a reward which is paid out to the `processExit()` initiator in return of the transaction cost borne by the person. The motive of having a bounty is to remove and extra step of processing exits while exiting funds. This also ensures everyone pays their share of processing contrary to passing on the responsibility to someone else.
 
-## The Bounty Life Cycle
+The Exit Bond on the other hand is there to disincentivize the exit owner from performing bad behaviour. The bond essentially covers the cost of challenging an invalid exit.
+
+## The Bond and Bounty Life Cycle
 
 ### For Standard Exits
 
-With the addition of the process exit bounty, there is a requirement of paying the bounty in addition to the bond. The bounty attempts to approximately cover the cost of processing the exit and is put up as a reward for anyone who wishes to take up the task. The initiator/owner has to obtaint the correct size of the Process Exit Bounty by calling `processStandardExitBountySize()`
+With the addition of the process exit bounty, there is a requirement of paying the bounty in addition to the bond. The bounty attempts to approximately cover the cost of processing the exit and is put up as a reward for anyone who wishes to take up the task. The initiator/owner has to obtaint the correct size of the Process Exit Bounty by calling `processStandardExitBountySize()`. The size of the Exit Bond can be obtained by calling `startStandardExitBondSize()`.
 
 **_After Starting an Exit:_**
 *Bond + Bounty funds -> from `Exit owner` to `Exit Game Contract`*
@@ -26,7 +28,7 @@ Bounty -> from `Exit Game Contract` to `Exit processor`*
 
 ### For In-Flght Exits
 
-The process exit bounty collection for in-flight exits is similar. However, for an in-flight exit it is necessary to pay the bounty while piggybacking an input/output. Since, only the piggybacked input/output from an in-flight exit can be exited. It only makes sense to obtain the bounty for each piggyback from the respective owner. The correct size of the bounty has to be obtained by calling `processInFlightExitBountySize()`
+The process exit bounty collection for in-flight exits is similar. However, for an in-flight exit it is necessary to pay the bounty while piggybacking an input/output. Since, only the piggybacked input/output from an in-flight exit can be exited. It only makes sense to obtain the bounty for each piggyback from the respective owner. The correct size of the bounty has to be obtained by calling `processInFlightExitBountySize()`. The size of the Piggyback Bond can be obtained by calling `piggybackBondSize()`.
 
 **_After Piggybacking an input/output:_**
 *Piggyback Bond + Bounty funds -> from `I/O Owner` to `Exit Game Contract`*
@@ -42,9 +44,9 @@ Both the standard and in-flight exit land on the same exit queue and the process
 *Bond -> from `Exit Game Contract` to `I/O Owner`
 Bounty -> from `Exit Game Contract` to `Exit processor`*
 
-## Exit Bounty Updatable Structure
+## The Updatable Structure
 
-The Exit Bounty follows an updatable pattern which allows it to be updated (by the maintainer) and reflect within a time period (2 days from the last update)
+The Exit Bounty/Bond follows an updatable pattern which allows it to be updated (by the maintainer) and reflect within a time period (2 days from the last update). Exit Bond and Exit Bounty both follow a similar updatable structure, the form has been explained through the use of exit bounty but bond/bounty can be used interchangeably here.
 
 ```
 struct Params {

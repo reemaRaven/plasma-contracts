@@ -30,6 +30,7 @@ module.exports = {
                 process.env.REMOTE_URL || 'http://127.0.0.1:8545',
                 0, 3,
             ),
+            gas: 0xfffffffffff,
             gasPrice: process.env.GAS_PRICE || 20000000000, // default 20 gwei
             network_id: '*',
         },
